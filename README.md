@@ -33,8 +33,12 @@ OceanWatch is not a replacement for official forecast centers; it is an analytic
 - Adds a post-analysis **Monte Carlo handoff**:
   - deterministic simulation stats/charts first
   - ADK interpretation and post-simulation hypothesis refinement next
-- Shows a strong frontend with:
-  - map, source health, rich metric cards, visual analytics, data exports
+- Shows an executive frontend with:
+  - tabbed briefing workspace (Executive Brief, Geo Lens, Quant Lab, Monte Carlo Lab, Data Room)
+  - source-health badges + expanded metric cards
+  - station map + **Ocean Lens port-impact intelligence map**
+  - regression/simulation visuals with hover interpretation callouts
+  - downloadable data exports
 
 ---
 
@@ -43,6 +47,7 @@ OceanWatch is not a replacement for official forecast centers; it is an analytic
 - **Station-level diagnostics** on waves, wind, water temperature, water level, and tide context.
 - **EDA outputs** with trends, anomaly density, distribution summaries, and regression signals.
 - **Risk framing** with severity scoring and exceedance probabilities.
+- **Port-impact analytics** using selected-station conditions to estimate relative U.S. port exposure scores and bands.
 - **Multi-agent hypothesis generation** using Google ADK orchestration.
 - **Monte Carlo follow-up** for stochastic wave-path scenarios and post-simulation hypothesis refinement.
 - **User-facing explainability** via plain-English summaries, evidence bullets, caveats, and visual callouts.
@@ -55,7 +60,18 @@ OceanWatch is not a replacement for official forecast centers; it is an analytic
 3. Specialist agents run EDA in parallel (buoy, tide/water level, risk/pattern analysis).
 4. Hypothesis agents synthesize findings into a single, evidence-backed hypothesis.
 5. Optional Monte Carlo handoff runs advanced simulation and then a post-simulation hypothesis pass.
-6. UI renders cards, charts, map context, source health, and downloadable artifacts.
+6. UI renders an executive tabbed dashboard with cards, charts, map context, port intelligence, and downloadable artifacts.
+
+---
+
+## 1.5) Executive Dashboard Layout
+
+OceanWatch is intentionally designed like an analytics command center rather than a raw notebook:
+- **Executive Brief:** Final hypothesis, evidence, caveats, station map, and metadata.
+- **Geo Lens:** Ocean Lens port-risk propagation map + top exposed ports + impact table.
+- **Quant Lab:** Severity/risk diagnostics, regression/exceedance visuals, scenario matrix, and figure gallery.
+- **Monte Carlo Lab:** Agent handoff controls plus path fan-chart, histogram, and exceedance curves.
+- **Data Room:** CSV downloads and dataset previews for reproducibility and grading.
 
 ---
 
@@ -205,10 +221,11 @@ Implemented in:
 ## 3) Core Requirements Checklist (Required)
 
 ### Frontend
-- **How OceanWatch does it:** Users pick a station + horizon, ask an ocean analytics question, and get map context, health badges, metric cards, charts, and hypothesis panels in one dashboard.
+- **How OceanWatch does it:** Users pick a station + horizon, ask an ocean analytics question, and get an executive tabbed workspace with map context, health badges, metric cards, port-intelligence analytics, chart panels, and hypothesis outputs.
 - **Where in code (file + function/class):**
   - `streamlit_app.py:main`
   - `streamlit_app.py:render_station_map`
+  - `streamlit_app.py:render_ocean_lens`
   - `streamlit_app.py:render_metric_cards`
   - `streamlit_app.py:render_advanced_panels`
   - `streamlit_app.py:render_wave_monte_carlo_panel`
@@ -307,14 +324,18 @@ Implemented in:
 - buoy wave/wind/temp dynamics
 - observed water level + predicted tide context
 - distribution band charts (P25/P50/P75) for ocean variables
-- scenario severity-vs-likelihood charts
+- regression slope-vs-exceedance risk plots
+- projected-vs-threshold comparison charts
+- scenario severity-vs-likelihood risk matrix
 - Monte Carlo wave-path fan charts, final-state histogram, and exceedance probability curves
+- Ocean Lens geospatial port-risk propagation and exposure ranking
 - **Where in code (file + function/class):**
   - `src/oceanwatch/visuals.py:build_visuals`
   - `src/oceanwatch/visuals.py:_buoy_conditions_figure`
   - `src/oceanwatch/visuals.py:_water_level_figure`
   - `src/oceanwatch/visuals.py:_distribution_figure`
   - `src/oceanwatch/visuals.py:_scenario_figure`
+  - `streamlit_app.py:render_ocean_lens`
   - `streamlit_app.py:render_advanced_panels`
   - `streamlit_app.py:render_wave_monte_carlo_panel`
 
@@ -451,8 +472,9 @@ gcloud config get-value project
 echo "$GOOGLE_CLOUD_PROJECT $GOOGLE_CLOUD_LOCATION $VERTEX_MODEL"
 ```
 
-### NOAA thumbnail images not loading
-Those are public external URLs and may intermittently fail due network/content-host issues. This does not affect grading-critical analytics.
+### Ocean Lens map looks flat or overly similar
+Ocean Lens computes relative port exposure from selected-station severity, exceedance likelihoods, anomaly density, and geospatial distance weighting.  
+Try changing station/horizon or rerunning analysis to refresh risk gradients.
 
 ---
 
