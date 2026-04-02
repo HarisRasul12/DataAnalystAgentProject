@@ -302,13 +302,28 @@ Implemented in:
   - `src/oceanwatch/service.py:OceanWatchService._post_monte_carlo_hypothesis_from_state`
 
 ### Additional Electives Implemented (bonus evidence)
-3) **Data visualization**
-- `src/oceanwatch/visuals.py:build_visuals`
-- `streamlit_app.py:render_advanced_panels`
-- `streamlit_app.py:render_wave_monte_carlo_panel`
+3) **Data visualization (bonus)**
+- **How OceanWatch does it in-domain:** It renders coastal analytics as runtime interactive visuals, including:
+- buoy wave/wind/temp dynamics
+- observed water level + predicted tide context
+- distribution band charts (P25/P50/P75) for ocean variables
+- scenario severity-vs-likelihood charts
+- Monte Carlo wave-path fan charts, final-state histogram, and exceedance probability curves
+- **Where in code (file + function/class):**
+  - `src/oceanwatch/visuals.py:build_visuals`
+  - `src/oceanwatch/visuals.py:_buoy_conditions_figure`
+  - `src/oceanwatch/visuals.py:_water_level_figure`
+  - `src/oceanwatch/visuals.py:_distribution_figure`
+  - `src/oceanwatch/visuals.py:_scenario_figure`
+  - `streamlit_app.py:render_advanced_panels`
+  - `streamlit_app.py:render_wave_monte_carlo_panel`
 
-4) **Parallel execution**
-- `src/oceanwatch/agents.py:create_oceanwatch_root_agent` (`ParallelOceanCollection`)
+4) **Parallel execution (bonus)**
+- **How OceanWatch does it in-domain:** It parallelizes specialist ocean analysis so buoy dynamics, tide/water-level context, risk modeling, and pattern interpretation run concurrently before synthesis. This reduces latency and improves signal coverage prior to hypothesis generation.
+- **Where in code (file + function/class):**
+  - `src/oceanwatch/agents.py:create_oceanwatch_root_agent`
+  - `src/oceanwatch/agents.py` `ParallelAgent(name="ParallelOceanCollection", sub_agents=[buoy_agent, tide_agent, risk_agent, pattern_agent])`
+  - `src/oceanwatch/agents.py` specialist sub-agents: `BuoyAgent`, `TideAgent`, `RiskAgent`, `PatternHypothesisAgent`
 
 ---
 
