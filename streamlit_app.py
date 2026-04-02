@@ -15,6 +15,21 @@ from oceanwatch.stations import STATION_CATALOG, get_station_by_label
 
 settings = load_settings()
 
+PORT_CATALOG = [
+    {"name": "Port of Los Angeles", "coast": "West Coast", "lat": 33.736, "lon": -118.264, "cargo_index": 100, "segment": "Container"},
+    {"name": "Port of Long Beach", "coast": "West Coast", "lat": 33.754, "lon": -118.216, "cargo_index": 96, "segment": "Container"},
+    {"name": "Port of Oakland", "coast": "West Coast", "lat": 37.798, "lon": -122.281, "cargo_index": 72, "segment": "Intermodal"},
+    {"name": "Port of Seattle", "coast": "West Coast", "lat": 47.602, "lon": -122.339, "cargo_index": 68, "segment": "Container"},
+    {"name": "Port of Houston", "coast": "Gulf", "lat": 29.728, "lon": -95.251, "cargo_index": 92, "segment": "Energy"},
+    {"name": "Port of New Orleans", "coast": "Gulf", "lat": 29.944, "lon": -90.065, "cargo_index": 74, "segment": "Bulk"},
+    {"name": "Port of Mobile", "coast": "Gulf", "lat": 30.695, "lon": -88.038, "cargo_index": 58, "segment": "Bulk"},
+    {"name": "Port of New York / NJ", "coast": "East Coast", "lat": 40.669, "lon": -74.041, "cargo_index": 94, "segment": "Container"},
+    {"name": "Port of Savannah", "coast": "East Coast", "lat": 32.128, "lon": -81.138, "cargo_index": 82, "segment": "Container"},
+    {"name": "Port of Norfolk", "coast": "Atlantic", "lat": 36.916, "lon": -76.327, "cargo_index": 76, "segment": "Defense + Container"},
+    {"name": "Port of Charleston", "coast": "Atlantic", "lat": 32.781, "lon": -79.927, "cargo_index": 70, "segment": "Container"},
+    {"name": "Port of Honolulu", "coast": "Pacific", "lat": 21.306, "lon": -157.864, "cargo_index": 52, "segment": "Island Logistics"},
+]
+
 
 @st.cache_resource
 def get_service() -> OceanWatchService:
@@ -25,19 +40,26 @@ def apply_ocean_theme() -> None:
     st.markdown(
         """
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap');
         [data-testid="stAppViewContainer"] {
             background:
                 radial-gradient(circle at 8% 12%, rgba(70, 160, 228, 0.30), transparent 32%),
                 radial-gradient(circle at 92% 14%, rgba(30, 220, 202, 0.22), transparent 36%),
                 linear-gradient(180deg, #021427 0%, #052a45 52%, #0a3b5e 100%);
             color: #ecf7ff;
+            font-family: 'Manrope', sans-serif;
         }
         [data-testid="stHeader"] { background: rgba(0, 0, 0, 0); }
         [data-testid="stSidebar"] {
             background: linear-gradient(180deg, #032339 0%, #0d466c 100%);
             border-right: 1px solid rgba(120, 204, 255, 0.20);
         }
-        h1, h2, h3, h4, h5, h6, p, li, label, div, span { color: #ecf7ff; }
+        h1, h2, h3, h4, h5, h6 {
+            color: #ecf7ff;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2px;
+        }
+        p, li, label, div, span { color: #ecf7ff; }
         [data-testid="stAlertContainer"] > div { border-radius: 12px; }
         [data-testid="stChatMessage"] {
             background: rgba(7, 54, 84, 0.45);
@@ -114,6 +136,34 @@ def apply_ocean_theme() -> None:
             font-size: 0.86rem;
             opacity: 0.9;
             margin-top: 0.12rem;
+        }
+        [data-baseweb="tab-list"] {
+            gap: 0.4rem;
+            background: rgba(6, 36, 62, 0.52);
+            border: 1px solid rgba(146, 224, 255, 0.28);
+            border-radius: 12px;
+            padding: 0.3rem;
+        }
+        button[data-baseweb="tab"] {
+            border-radius: 10px;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        button[data-baseweb="tab"][aria-selected="true"] {
+            background: linear-gradient(120deg, rgba(15, 121, 190, 0.85), rgba(38, 200, 187, 0.58));
+            color: #f8fdff;
+        }
+        [data-testid="stDataFrame"] {
+            border: 1px solid rgba(130, 207, 245, 0.22);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .kpi-ribbon {
+            background: linear-gradient(100deg, rgba(7, 84, 130, 0.55), rgba(23, 167, 165, 0.42));
+            border: 1px solid rgba(160, 229, 255, 0.30);
+            border-radius: 12px;
+            padding: 0.85rem 0.95rem;
+            margin-bottom: 0.8rem;
         }
         </style>
         """,
@@ -352,110 +402,167 @@ def render_metric_cards(result: RunResult, mc_report: WaveMonteCarloReport | Non
                 st.metric(card["label"], card["value"], help=card["help"])
 
 
-def _ocean_thumbnail_catalog(station: dict[str, object]) -> list[dict[str, str]]:
-    coast = str(station.get("coast", "West Coast"))
-    by_coast: dict[str, list[dict[str, str]]] = {
-        "West Coast": [
-            {
-                "title": "California Kelp Coast",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Big_Sur_Coastline.jpg/640px-Big_Sur_Coastline.jpg",
-                "source": "Wikimedia Commons",
-            },
-            {
-                "title": "Pacific Swell",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Waves_in_the_Pacific_Ocean.jpg/640px-Waves_in_the_Pacific_Ocean.jpg",
-                "source": "Wikimedia Commons",
-            },
-            {
-                "title": "NOAA Ocean Explorer",
-                "url": "https://oceanexplorer.noaa.gov/oceanexplorer-edu/images/ocean_image_gallery/cover.jpg",
-                "source": "NOAA Ocean Explorer",
-            },
-        ],
-        "East Coast": [
-            {
-                "title": "Atlantic Coastline",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Atlantic_Ocean_coastline.jpg/640px-Atlantic_Ocean_coastline.jpg",
-                "source": "Wikimedia Commons",
-            },
-            {
-                "title": "NOAA Coast Survey",
-                "url": "https://nauticalcharts.noaa.gov/images/hero/charts-hero.jpg",
-                "source": "NOAA Coast Survey",
-            },
-            {
-                "title": "Coastal Storm Seas",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Atlantic_waves.jpg/640px-Atlantic_waves.jpg",
-                "source": "Wikimedia Commons",
-            },
-        ],
-        "Atlantic": [
-            {
-                "title": "Atlantic Open Water",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Atlantic_Ocean.jpg/640px-Atlantic_Ocean.jpg",
-                "source": "Wikimedia Commons",
-            },
-            {
-                "title": "NOAA Marine Ops",
-                "url": "https://www.noaa.gov/sites/default/files/styles/card_medium/public/2023-08/NOAA-ship-ocean.jpg",
-                "source": "NOAA",
-            },
-            {
-                "title": "Shoreline Dynamics",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Ocean_waves.jpg/640px-Ocean_waves.jpg",
-                "source": "Wikimedia Commons",
-            },
-        ],
-        "Gulf": [
-            {
-                "title": "Gulf Coast Waters",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Gulf_of_Mexico_satellite.jpg/640px-Gulf_of_Mexico_satellite.jpg",
-                "source": "Wikimedia Commons",
-            },
-            {
-                "title": "NOAA Coastal Resilience",
-                "url": "https://oceanservice.noaa.gov/facts/coastal/images/coastal-main.jpg",
-                "source": "NOAA Ocean Service",
-            },
-            {
-                "title": "Nearshore Surf",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Ocean_surf.jpg/640px-Ocean_surf.jpg",
-                "source": "Wikimedia Commons",
-            },
-        ],
-        "Pacific": [
-            {
-                "title": "Pacific Basin",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Pacific_Ocean_-_en.png/640px-Pacific_Ocean_-_en.png",
-                "source": "Wikimedia Commons",
-            },
-            {
-                "title": "Island Swell",
-                "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Pacific_ocean_waves.jpg/640px-Pacific_ocean_waves.jpg",
-                "source": "Wikimedia Commons",
-            },
-            {
-                "title": "NOAA Ocean Service",
-                "url": "https://oceanservice.noaa.gov/news/images/ocean-facts.jpg",
-                "source": "NOAA Ocean Service",
-            },
-        ],
-    }
-    return by_coast.get(coast, by_coast["West Coast"])
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    r = 6371.0
+    d_lat = np.radians(lat2 - lat1)
+    d_lon = np.radians(lon2 - lon1)
+    a = np.sin(d_lat / 2.0) ** 2 + np.cos(np.radians(lat1)) * np.cos(np.radians(lat2)) * np.sin(d_lon / 2.0) ** 2
+    c = 2.0 * np.arcsin(np.sqrt(a))
+    return float(r * c)
 
 
-def render_ocean_thumbnails(station: dict[str, object]) -> None:
-    st.subheader("Ocean Lens")
-    st.caption("NOAA/public ocean thumbnails mapped to the selected coast.")
-    thumbs = _ocean_thumbnail_catalog(station)
-    cols = st.columns(3)
-    for col, thumb in zip(cols, thumbs):
-        with col:
-            st.markdown(
-                f"[![{thumb['title']}]({thumb['url']})]({thumb['url']})",
-                unsafe_allow_html=False,
+def _coast_similarity(port_coast: str, station_coast: str) -> float:
+    if port_coast == station_coast:
+        return 1.0
+    if {port_coast, station_coast} <= {"Atlantic", "East Coast"}:
+        return 0.82
+    if {port_coast, station_coast} <= {"Pacific", "West Coast"}:
+        return 0.82
+    return 0.58
+
+
+def build_port_impact_frame(station: dict[str, object], result: RunResult) -> pd.DataFrame:
+    severity_score = float(result.metrics.advanced_analytics.get("severity", {}).get("score_0_100", 0.0))
+    exceedance = _max_regression_exceedance_pct(result) or 0.0
+    anomaly_density = _anomaly_density_pct(result) or 0.0
+    station_lat = float(station.get("latitude", 0.0))
+    station_lon = float(station.get("longitude", 0.0))
+    station_coast = str(station.get("coast", "West Coast"))
+    rows = []
+    for port in PORT_CATALOG:
+        distance_km = _haversine_km(station_lat, station_lon, float(port["lat"]), float(port["lon"]))
+        distance_weight = float(np.exp(-distance_km / 2200.0))
+        coast_weight = _coast_similarity(str(port["coast"]), station_coast)
+        cargo_norm = float(port["cargo_index"]) / 100.0
+        dynamic_risk = (
+            (0.50 * (severity_score / 100.0))
+            + (0.28 * (exceedance / 100.0))
+            + (0.22 * (anomaly_density / 100.0))
+        )
+        risk_index = 100.0 * ((0.65 * dynamic_risk * distance_weight * coast_weight) + (0.35 * cargo_norm))
+        risk_index = float(np.clip(risk_index, 1.0, 99.0))
+        risk_band = "High" if risk_index >= 70 else "Moderate" if risk_index >= 45 else "Low"
+        rows.append(
+            {
+                "port": port["name"],
+                "coast": port["coast"],
+                "segment": port["segment"],
+                "cargo_index": int(port["cargo_index"]),
+                "distance_km": round(distance_km, 1),
+                "risk_index": round(risk_index, 1),
+                "risk_band": risk_band,
+                "lat": float(port["lat"]),
+                "lon": float(port["lon"]),
+            }
+        )
+    frame = pd.DataFrame(rows).sort_values("risk_index", ascending=False).reset_index(drop=True)
+    return frame
+
+
+def render_ocean_lens(station: dict[str, object], result: RunResult) -> None:
+    st.subheader("Ocean Lens: Port Impact Intelligence")
+    st.caption("Resilient map + analytics for likely U.S. port stress linked to selected station conditions.")
+    port_frame = build_port_impact_frame(station, result)
+    top_row = st.columns([1.45, 1], gap="large")
+    with top_row[0]:
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scattergeo(
+                lon=port_frame["lon"],
+                lat=port_frame["lat"],
+                text=port_frame["port"],
+                mode="markers",
+                marker={
+                    "size": (port_frame["cargo_index"] / 3.0) + 8,
+                    "color": port_frame["risk_index"],
+                    "colorscale": "Turbo",
+                    "cmin": 0,
+                    "cmax": 100,
+                    "line": {"width": 1, "color": "white"},
+                    "colorbar": {"title": "Port Risk"},
+                },
+                customdata=port_frame[["coast", "segment", "distance_km", "risk_index", "risk_band"]].values,
+                hovertemplate=(
+                    "<b>%{text}</b><br>Coast: %{customdata[0]}<br>Segment: %{customdata[1]}"
+                    "<br>Distance from station: %{customdata[2]} km"
+                    "<br>Risk index: %{customdata[3]} (%{customdata[4]})<extra></extra>"
+                ),
+                name="Ports",
             )
-            st.caption(f"{thumb['title']} · {thumb['source']}")
+        )
+        fig.add_trace(
+            go.Scattergeo(
+                lon=[float(station.get("longitude", 0.0))],
+                lat=[float(station.get("latitude", 0.0))],
+                text=[str(station.get("display_name", "Selected Station"))],
+                mode="markers",
+                marker={"size": 18, "symbol": "star", "color": "#ffe66d", "line": {"color": "#08314d", "width": 2}},
+                name="Selected Station",
+                hovertemplate="<b>%{text}</b><br>Origin station for risk propagation<extra></extra>",
+            )
+        )
+        fig.update_layout(
+            title="Port Risk Propagation Map",
+            height=420,
+            margin={"l": 0, "r": 0, "t": 44, "b": 0},
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font={"color": "#eaf6ff"},
+            legend={"orientation": "h", "y": 1.06},
+        )
+        fig.update_geos(
+            scope="north america",
+            projection_type="mercator",
+            showland=True,
+            landcolor="#163f5b",
+            showcountries=True,
+            countrycolor="#6da8ca",
+            showocean=True,
+            oceancolor="#062740",
+            lataxis={"range": [15, 65]},
+            lonaxis={"range": [-170, -55]},
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    with top_row[1]:
+        top_ports = port_frame.head(8).iloc[::-1]
+        bar = go.Figure()
+        bar.add_trace(
+            go.Bar(
+                y=top_ports["port"],
+                x=top_ports["risk_index"],
+                orientation="h",
+                marker={"color": top_ports["risk_index"], "colorscale": "Turbo", "cmin": 0, "cmax": 100},
+                customdata=top_ports[["distance_km", "cargo_index", "risk_band"]].values,
+                hovertemplate=(
+                    "<b>%{y}</b><br>Risk Index: %{x:.1f}<br>Distance: %{customdata[0]} km"
+                    "<br>Cargo Index: %{customdata[1]}<br>Band: %{customdata[2]}<extra></extra>"
+                ),
+                name="Risk",
+            )
+        )
+        bar.update_layout(
+            title="Top Port Exposure (Selected Conditions)",
+            xaxis_title="Risk Index (0-100)",
+            yaxis_title="",
+            height=420,
+            margin={"l": 0, "r": 10, "t": 44, "b": 10},
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font={"color": "#eaf6ff"},
+        )
+        st.plotly_chart(bar, use_container_width=True)
+
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Highest Port Risk", f"{port_frame['risk_index'].max():.1f}")
+    k2.metric("Average Port Risk", f"{port_frame['risk_index'].mean():.1f}")
+    k3.metric("Ports in High Band", f"{int((port_frame['risk_band'] == 'High').sum())}")
+    k4.metric("Nearest Top-Risk Port", port_frame.iloc[0]["port"])
+
+    st.dataframe(
+        port_frame[["port", "coast", "segment", "distance_km", "cargo_index", "risk_index", "risk_band"]],
+        use_container_width=True,
+        hide_index=True,
+    )
 
 
 def render_advanced_panels(result: RunResult) -> None:
@@ -481,6 +588,12 @@ def render_advanced_panels(result: RunResult) -> None:
     if regressions:
         st.markdown("**Regression and exceedance likelihoods**")
         reg_df = pd.DataFrame(regressions)
+        if "exceedance_probability" in reg_df.columns:
+            reg_df["exceedance_pct"] = pd.to_numeric(reg_df["exceedance_probability"], errors="coerce") * 100.0
+        if "projected_6h" in reg_df.columns and "threshold" in reg_df.columns:
+            reg_df["gap_vs_threshold"] = pd.to_numeric(reg_df["projected_6h"], errors="coerce") - pd.to_numeric(
+                reg_df["threshold"], errors="coerce"
+            )
         show_cols = [
             "label",
             "slope_per_hour",
@@ -489,11 +602,81 @@ def render_advanced_panels(result: RunResult) -> None:
             "projected_6h",
             "threshold",
             "threshold_units",
-            "exceedance_probability",
+            "exceedance_pct",
+            "gap_vs_threshold",
             "risk_band",
         ]
         existing = [col for col in show_cols if col in reg_df.columns]
-        st.dataframe(reg_df[existing], use_container_width=True)
+        chart_cols = st.columns(2, gap="large")
+        with chart_cols[0]:
+            slope_fig = go.Figure()
+            slope_fig.add_trace(
+                go.Scatter(
+                    x=reg_df.get("slope_per_hour", pd.Series(dtype=float)),
+                    y=reg_df.get("exceedance_pct", pd.Series(dtype=float)),
+                    mode="markers+text",
+                    text=reg_df.get("label", pd.Series(dtype=str)),
+                    textposition="top center",
+                    marker={
+                        "size": (pd.to_numeric(reg_df.get("r_squared", 0), errors="coerce").fillna(0) * 30) + 14,
+                        "color": pd.to_numeric(reg_df.get("exceedance_pct", 0), errors="coerce").fillna(0),
+                        "colorscale": "Viridis",
+                        "line": {"color": "white", "width": 1},
+                        "showscale": True,
+                        "colorbar": {"title": "Exceedance %"},
+                    },
+                    customdata=reg_df.get("risk_band", pd.Series(dtype=str)),
+                    hovertemplate=(
+                        "<b>%{text}</b><br>Slope/hr: %{x:.4f}<br>Exceedance: %{y:.1f}%"
+                        "<br>Band: %{customdata}<extra></extra>"
+                    ),
+                    name="Regression Signal",
+                )
+            )
+            slope_fig.add_hline(y=50, line_dash="dot", line_color="#ffcc70")
+            slope_fig.add_vline(x=0, line_dash="dash", line_color="#90e0ef")
+            slope_fig.update_layout(
+                title="Trend Slope vs Exceedance Risk",
+                xaxis_title="Slope Per Hour",
+                yaxis_title="Exceedance Probability (%)",
+                height=360,
+                margin={"l": 20, "r": 20, "t": 50, "b": 20},
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font={"color": "#eaf6ff"},
+            )
+            st.plotly_chart(slope_fig, use_container_width=True)
+        with chart_cols[1]:
+            compare_fig = go.Figure()
+            compare_fig.add_trace(
+                go.Bar(
+                    x=reg_df["label"],
+                    y=reg_df.get("projected_6h", 0),
+                    name="Projected (6h)",
+                    marker_color="#6ad4ff",
+                    hovertemplate="<b>%{x}</b><br>Projected: %{y:.3f}<extra></extra>",
+                )
+            )
+            compare_fig.add_trace(
+                go.Bar(
+                    x=reg_df["label"],
+                    y=reg_df.get("threshold", 0),
+                    name="Threshold",
+                    marker_color="#ffd166",
+                    hovertemplate="<b>%{x}</b><br>Threshold: %{y:.3f}<extra></extra>",
+                )
+            )
+            compare_fig.update_layout(
+                title="Projected Level vs Threshold",
+                barmode="group",
+                height=360,
+                margin={"l": 20, "r": 20, "t": 50, "b": 20},
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font={"color": "#eaf6ff"},
+            )
+            st.plotly_chart(compare_fig, use_container_width=True)
+        st.dataframe(reg_df[existing], use_container_width=True, hide_index=True)
 
     patterns = advanced.get("irregular_patterns", [])
     if patterns:
@@ -510,7 +693,79 @@ def render_advanced_panels(result: RunResult) -> None:
     if simulations:
         st.markdown("**Simulation outcomes (tool-generated)**")
         sim_df = pd.DataFrame(simulations)
-        st.dataframe(sim_df, use_container_width=True)
+        if "likelihood_probability" in sim_df.columns:
+            sim_df["likelihood_pct"] = pd.to_numeric(sim_df["likelihood_probability"], errors="coerce") * 100.0
+        sim_cols = st.columns(2, gap="large")
+        with sim_cols[0]:
+            sim_scatter = go.Figure()
+            sim_scatter.add_trace(
+                go.Scatter(
+                    x=sim_df.get("likelihood_pct", pd.Series(dtype=float)),
+                    y=sim_df.get("severity_score_0_100", pd.Series(dtype=float)),
+                    mode="markers+text",
+                    text=sim_df.get("scenario", pd.Series(dtype=str)),
+                    textposition="top center",
+                    marker={
+                        "size": (pd.to_numeric(sim_df.get("projected_wave_height_m", 0), errors="coerce").fillna(0) * 10) + 12,
+                        "color": pd.to_numeric(sim_df.get("severity_score_0_100", 0), errors="coerce").fillna(0),
+                        "colorscale": "Turbo",
+                        "line": {"color": "white", "width": 1},
+                    },
+                    customdata=sim_df.get("interpretation", pd.Series(dtype=str)),
+                    hovertemplate=(
+                        "<b>%{text}</b><br>Likelihood: %{x:.1f}%<br>Severity: %{y:.1f}/100"
+                        "<br>%{customdata}<extra></extra>"
+                    ),
+                    name="Scenario",
+                )
+            )
+            sim_scatter.update_layout(
+                title="Scenario Risk Matrix",
+                xaxis_title="Likelihood (%)",
+                yaxis_title="Severity Score (0-100)",
+                height=360,
+                margin={"l": 20, "r": 20, "t": 50, "b": 20},
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font={"color": "#eaf6ff"},
+            )
+            st.plotly_chart(sim_scatter, use_container_width=True)
+        with sim_cols[1]:
+            outlook_fig = go.Figure()
+            outlook_fig.add_trace(
+                go.Bar(
+                    x=sim_df.get("scenario", pd.Series(dtype=str)),
+                    y=sim_df.get("projected_wave_height_m", pd.Series(dtype=float)),
+                    marker_color="#59c3ff",
+                    name="Projected Wave Height (m)",
+                    hovertemplate="<b>%{x}</b><br>Wave: %{y:.2f} m<extra></extra>",
+                )
+            )
+            if "projected_water_level_m" in sim_df.columns:
+                outlook_fig.add_trace(
+                    go.Scatter(
+                        x=sim_df.get("scenario", pd.Series(dtype=str)),
+                        y=sim_df.get("projected_water_level_m", pd.Series(dtype=float)),
+                        mode="lines+markers",
+                        line={"color": "#ffd166", "width": 2},
+                        marker={"size": 8},
+                        name="Projected Water Level (m)",
+                        yaxis="y2",
+                        hovertemplate="<b>%{x}</b><br>Water level: %{y:.2f} m<extra></extra>",
+                    )
+                )
+            outlook_fig.update_layout(
+                title="Projected Ocean State by Scenario",
+                height=360,
+                margin={"l": 20, "r": 20, "t": 50, "b": 20},
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font={"color": "#eaf6ff"},
+                yaxis={"title": "Wave Height (m)"},
+                yaxis2={"title": "Water Level (m)", "overlaying": "y", "side": "right"},
+            )
+            st.plotly_chart(outlook_fig, use_container_width=True)
+        st.dataframe(sim_df, use_container_width=True, hide_index=True)
 
 
 def render_agent_workflow(result: RunResult, mc_report: WaveMonteCarloReport | None = None) -> None:
@@ -862,17 +1117,48 @@ def main() -> None:
 
     result = st.session_state.get("last_result")
     mc_report = st.session_state.get("last_wave_mc")
+    st.subheader("OceanWatch Chat")
+    for user_msg, assistant_msg in st.session_state.chat_history[-3:]:
+        with st.chat_message("user"):
+            st.write(user_msg)
+        with st.chat_message("assistant"):
+            st.write(assistant_msg)
 
-    left, right = st.columns([1.6, 1], gap="large")
-    with left:
-        st.subheader("OceanWatch Chat")
-        for user_msg, assistant_msg in st.session_state.chat_history[-5:]:
-            with st.chat_message("user"):
-                st.write(user_msg)
-            with st.chat_message("assistant"):
-                st.write(assistant_msg)
+    if result is None:
+        st.info("Run an analysis from the sidebar to unlock executive dashboards, quant visuals, and Monte Carlo handoff.")
+        st.subheader("Station Map")
+        render_station_map(station.key, result=None)
+        return
 
-        if result is not None:
+    st.markdown(
+        (
+            "<div class='kpi-ribbon'><b>Executive Snapshot</b>: "
+            f"{result.metrics.advanced_analytics.get('risk_headline', 'Awaiting analysis headline.')}"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+    render_source_health(result.health)
+    render_metric_cards(result, mc_report=mc_report)
+    st.info(result.metrics.confidence_note)
+    if result.warnings:
+        for warning in result.warnings:
+            st.warning(warning)
+
+    tabs = st.tabs(
+        [
+            "Executive Brief",
+            "Geo Lens",
+            "Quant Lab",
+            "Monte Carlo Lab",
+            "Data Room",
+        ]
+    )
+
+    with tabs[0]:
+        col_left, col_right = st.columns([1.55, 1], gap="large")
+        with col_left:
             render_agent_workflow(result, mc_report=mc_report)
             st.subheader("Final Hypothesis")
             source_label = thesis_source_label(result)
@@ -887,65 +1173,19 @@ def main() -> None:
             st.markdown("**Evidence bullets**")
             for bullet in result.insight.evidence_bullets:
                 st.write(f"- {bullet}")
-
             if result.insight.notable_anomalies:
                 st.markdown("**Notable anomalies**")
                 for item in result.insight.notable_anomalies:
                     st.write(f"- {item}")
-
             st.markdown("**Limitations**")
             for item in result.insight.limitations:
                 st.write(f"- {item}")
-
             st.markdown("**Recommended follow-ups**")
             for item in result.insight.recommended_followups:
                 st.write(f"- {item}")
-
-            render_advanced_panels(result)
-
-            st.markdown("---")
-            st.subheader("Monte Carlo Follow-up (Agent Handoff)")
-            st.caption(
-                "After preliminary analysis, choose horizon and path count, then hand off to the Monte Carlo specialist agent."
-            )
-            mc_days = st.slider(
-                "Monte Carlo Horizon (days)",
-                min_value=1,
-                max_value=7,
-                value=3,
-                step=1,
-                key="mc_days_after_analysis",
-            )
-            mc_paths = st.slider(
-                "Monte Carlo Paths",
-                min_value=300,
-                max_value=3000,
-                value=900,
-                step=100,
-                key="mc_paths_after_analysis",
-            )
-            st.info(
-                "Agent handoff: CoordinatorAgent -> WaveMonteCarloCoordinator "
-                "using runtime NOAA context + advanced stochastic simulation."
-            )
-            run_mc_clicked = st.button("Run Monte Carlo Handoff", key="run_wave_mc")
-            if run_mc_clicked:
-                with st.spinner("Running wave-path Monte Carlo specialist agent..."):
-                    st.session_state.last_wave_mc = service.run_wave_monte_carlo_agent(
-                        result,
-                        days_ahead=mc_days,
-                        path_count=mc_paths,
-                    )
-                    mc_report = st.session_state.last_wave_mc
-
-            if mc_report is not None:
-                render_wave_monte_carlo_panel(mc_report)
-
-    with right:
-        st.subheader("Station Map")
-        render_station_map(station.key, result=result)
-
-        if result is not None:
+        with col_right:
+            st.subheader("Station Map")
+            render_station_map(station.key, result=result)
             st.subheader("Station Metadata")
             st.json(result.station)
             st.markdown(
@@ -954,22 +1194,54 @@ def main() -> None:
                 + (f" | `model: {result.adk_model_used}`" if result.adk_model_used else "")
                 + (f" | `{result.adk_error_summary}`" if result.adk_error_summary else "")
             )
-            render_source_health(result.health)
 
-            if result.warnings:
-                st.subheader("Warnings")
-                for warning in result.warnings:
-                    st.warning(warning)
+    with tabs[1]:
+        render_ocean_lens(result.station, result)
 
-            render_metric_cards(result, mc_report=mc_report)
-            st.info(result.metrics.confidence_note)
-            render_ocean_thumbnails(result.station)
-
-    if result is not None:
+    with tabs[2]:
+        render_advanced_panels(result)
         st.subheader("Visual Analytics")
         for name, figure in result.figures.items():
             st.plotly_chart(figure, use_container_width=True)
 
+    with tabs[3]:
+        st.subheader("Monte Carlo Follow-up (Agent Handoff)")
+        st.caption(
+            "After preliminary analysis, choose horizon and path count, then hand off to the Monte Carlo specialist agent."
+        )
+        mc_days = st.slider(
+            "Monte Carlo Horizon (days)",
+            min_value=1,
+            max_value=7,
+            value=3,
+            step=1,
+            key="mc_days_after_analysis",
+        )
+        mc_paths = st.slider(
+            "Monte Carlo Paths",
+            min_value=300,
+            max_value=3000,
+            value=900,
+            step=100,
+            key="mc_paths_after_analysis",
+        )
+        st.info(
+            "Agent handoff: CoordinatorAgent -> WaveMonteCarloCoordinator "
+            "using runtime NOAA context + advanced stochastic simulation."
+        )
+        run_mc_clicked = st.button("Run Monte Carlo Handoff", key="run_wave_mc")
+        if run_mc_clicked:
+            with st.spinner("Running wave-path Monte Carlo specialist agent..."):
+                st.session_state.last_wave_mc = service.run_wave_monte_carlo_agent(
+                    result,
+                    days_ahead=mc_days,
+                    path_count=mc_paths,
+                )
+                mc_report = st.session_state.last_wave_mc
+        if mc_report is not None:
+            render_wave_monte_carlo_panel(mc_report)
+
+    with tabs[4]:
         st.subheader("Data Exports")
         data_cols = st.columns(3)
         with data_cols[0]:
@@ -978,6 +1250,15 @@ def main() -> None:
             dataframe_download_button("water_levels", result.tables["water_level"])
         with data_cols[2]:
             dataframe_download_button("tide_predictions", result.tables["tide_predictions"])
+
+        st.markdown("**Dataset previews**")
+        preview_tabs = st.tabs(["Buoy", "Water Level", "Tide Predictions"])
+        with preview_tabs[0]:
+            st.dataframe(result.tables["buoy"].tail(100), use_container_width=True)
+        with preview_tabs[1]:
+            st.dataframe(result.tables["water_level"].tail(100), use_container_width=True)
+        with preview_tabs[2]:
+            st.dataframe(result.tables["tide_predictions"].tail(100), use_container_width=True)
 
 
 if __name__ == "__main__":
