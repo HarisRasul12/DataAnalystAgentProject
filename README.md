@@ -83,6 +83,75 @@ OceanWatch is not a replacement for official forecast centers; it is an analytic
 
 ---
 
+## 1.4) Data Collection + Retrieval Grounding (RAG-Style) In Depth
+
+### A) Where the data comes from (external runtime sources)
+OceanWatch pulls data live from NOAA on every run. It does not rely on static bundled CSVs for core analysis.
+
+1. **NOAA NDBC buoy realtime feed** (text table)
+- URL pattern: `https://www.ndbc.noaa.gov/data/realtime2/{station_id}.txt`
+- Provides wave/wind/ocean-atmosphere observations like:
+  - wave height (`WVHT`)
+  - wind speed (`WSPD`)
+  - gust (`GST`)
+  - water temperature (`WTMP`)
+  - pressure (`PRES`)
+
+2. **NOAA CO-OPS DataGetter API** (JSON)
+- Base URL: `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter`
+- Product calls:
+  - `product=water_level` (observed water levels)
+  - `product=predictions` (tide highs/lows)
+- Typical runtime query fields include:
+  - `station`, `begin_date`, `end_date`
+  - `datum=MLLW`
+  - `time_zone=gmt`
+  - `units=metric` (water levels) / `units=english` (tide predictions)
+  - `format=json`
+
+### B) How OceanWatch pulls and transforms it
+1. User picks a station and horizon in Streamlit.
+2. Station IDs (NDBC + CO-OPS) are resolved from curated station catalog.
+3. Service prefetches NOAA sources in parallel for speed.
+4. Raw payloads are parsed into typed dataframes:
+- NDBC text -> timestamped numeric frame
+- CO-OPS JSON -> observed level frame + prediction frame
+5. Parsed rows feed EDA tools and ADK agent workflows.
+
+### C) Reliability behavior (runtime robustness)
+- HTTP timeout + retry policy (`httpx` + `tenacity`)
+- Per-source health tracking (`ok`, `empty`, `error`)
+- Graceful degraded mode when one feed fails
+- Explicit confidence/warning messaging in UI
+
+### D) “RAG” in OceanWatch (what it is and isn’t)
+OceanWatch uses **retrieval-grounded context packaging** for agent reasoning:
+- It retrieves live NOAA observations and computed metrics first.
+- It then injects this structured runtime context into ADK session state for hypothesis agents.
+- Monte Carlo handoff uses retrieved simulation snapshots + recent wave context for post-simulation interpretation.
+
+This is **RAG-style grounding over live tabular/API data**, not a document-vector-store RAG over PDFs.  
+In other words: OceanWatch’s agents are grounded by retrieved operational ocean data, not by static docs.
+
+### E) Exact code locations for data/retrieval flow
+- Source collection client:
+  - `src/oceanwatch/noaa_clients.py:NOAAClient.fetch_ndbc_observations`
+  - `src/oceanwatch/noaa_clients.py:NOAAClient.fetch_coops_water_level`
+  - `src/oceanwatch/noaa_clients.py:NOAAClient.fetch_coops_tide_predictions`
+- Parsing:
+  - `src/oceanwatch/noaa_clients.py:parse_ndbc_realtime_text`
+  - `src/oceanwatch/noaa_clients.py:parse_coops_water_level_json`
+  - `src/oceanwatch/noaa_clients.py:parse_coops_predictions_json`
+- Runtime orchestration and prefetch:
+  - `src/oceanwatch/service.py:OceanWatchService.run_analysis`
+  - `src/oceanwatch/service.py:OceanWatchService._prefetch_sources`
+- Tool-call interface used by agents:
+  - `src/oceanwatch/service.py:OceanWatchToolset`
+- Retrieval-grounded Monte Carlo handoff:
+  - `src/oceanwatch/service.py:OceanWatchService.run_wave_monte_carlo_agent`
+
+---
+
 ## 2) Assignment Three Steps Mapping
 
 ### Step 1: Collect
