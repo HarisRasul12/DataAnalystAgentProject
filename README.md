@@ -288,13 +288,18 @@ Implemented in:
   - `src/oceanwatch/metrics.py:_irregular_pattern_records`
 
 2) **Structured output (chosen)**
-- **How OceanWatch does it in-domain:** Uses schema-constrained ADK outputs so hypotheses, evidence bullets, caveats, and Monte Carlo interpretation fields are machine-validated and consistently rendered.
+- **Status:** Fully implemented with high confidence.
+- **How OceanWatch does it in-domain:** OceanWatch uses schema-constrained ADK outputs (Pydantic + ADK `output_schema`) so ocean hypotheses and Monte Carlo interpretations are emitted as reliable structured objects, then validated/parsing-checked before UI rendering.
+- **What is structured:** thesis/hypothesis text, narrative paragraphs, evidence bullets, anomalies, limitations, follow-ups, Monte Carlo interpretation fields, and post-Monte-Carlo hypothesis deltas.
 - **Where in code (file + function/class):**
   - `src/oceanwatch/schemas.py:InsightReport`
   - `src/oceanwatch/schemas.py:WaveHypothesisInterpretation`
   - `src/oceanwatch/schemas.py:PostMonteCarloHypothesis`
-  - `src/oceanwatch/agents.py:create_oceanwatch_root_agent` (ADK `output_schema`)
-  - `src/oceanwatch/agents.py:create_wave_monte_carlo_agent` (ADK `output_schema`)
+  - `src/oceanwatch/agents.py:create_oceanwatch_root_agent` (`output_schema=InsightReport`)
+  - `src/oceanwatch/agents.py:create_wave_monte_carlo_agent` (`output_schema=WaveSimulationSnapshot`, `output_schema=WaveHypothesisInterpretation`, `output_schema=PostMonteCarloHypothesis`)
+  - `src/oceanwatch/service.py:OceanWatchService._insight_from_state`
+  - `src/oceanwatch/service.py:OceanWatchService._wave_hypothesis_interpretation_from_state`
+  - `src/oceanwatch/service.py:OceanWatchService._post_monte_carlo_hypothesis_from_state`
 
 ### Additional Electives Implemented (bonus evidence)
 3) **Data visualization**
