@@ -1,0 +1,36 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:${_IMAGE_TAG}"
+      - "."
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:${_IMAGE_TAG}"
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "${_SERVICE}"
+      - "--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:${_IMAGE_TAG}"
+      - "--region=${_REGION}"
+      - "--platform=managed"
+      - "--allow-unauthenticated"
+      - "--timeout=900"
+      - "--cpu=2"
+      - "--memory=2Gi"
+      - "--set-env-vars=VERTEX_MODEL=gemini-2.0-flash-lite,OCEANWATCH_VERTEX_MODEL_CANDIDATES=gemini-2.0-flash\\,gemini-2.5-flash-lite,OCEANWATCH_REQUIRE_ADK_SUCCESS=true,OCEANWATCH_ALLOW_TRANSIENT_FALLBACK_WHEN_STRICT=true,OCEANWATCH_APP_NAME=oceanwatch,OCEANWATCH_DEFAULT_HOURS=168,OCEANWATCH_TIMEOUT_SECONDS=20,OCEANWATCH_RETRY_ATTEMPTS=3,OCEANWATCH_ADK_TIMEOUT_SECONDS=45,GOOGLE_CLOUD_LOCATION=${_REGION},GOOGLE_GENAI_USE_VERTEXAI=true"
+
+substitutions:
+  _SERVICE: "oceanwatch"
+  _REGION: "us-central1"
+  _REPO: "oceanwatch-repo"
+  _IMAGE_TAG: "latest"
+
+images:
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:${_IMAGE_TAG}"

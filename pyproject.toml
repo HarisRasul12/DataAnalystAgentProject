@@ -1,0 +1,42 @@
+[project]
+name = "oceanwatch"
+version = "0.1.0"
+description = "OceanWatch multi-agent coastal analytics app"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "streamlit>=1.44.0",
+  "pandas>=2.2.0",
+  "numpy>=1.26.0,<3",
+  "scipy>=1.13.0",
+  "plotly>=5.24.0",
+  "httpx>=0.27.0",
+  "tenacity>=9.0.0",
+  "pydantic>=2.8.0",
+  "google-adk>=0.3.0",
+  "google-genai>=1.16.0",
+  "pytest>=8.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.8.0",
+]
+
+[project.scripts]
+serve = "oceanwatch.devtools:serve_main"
+test = "oceanwatch.devtools:test_main"
+smoke = "oceanwatch.devtools:smoke_main"
+
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/oceanwatch"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
