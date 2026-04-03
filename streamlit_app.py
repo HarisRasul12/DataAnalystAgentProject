@@ -108,20 +108,40 @@ def apply_ocean_theme() -> None:
         [data-testid="stSidebarCollapseButton"] button,
         [data-testid="collapsedControl"] button,
         [data-testid="stSidebarCollapsedControl"] button,
+        div[data-testid="collapsedControl"] > button,
+        div[data-testid="stSidebarCollapsedControl"] > button,
         button[title="Collapse sidebar"],
         button[title="Expand sidebar"] {
             color: #ffffff !important;
             background: rgba(3, 8, 20, 0.80) !important;
             border: 1px solid rgba(166, 230, 255, 0.45) !important;
             border-radius: 10px !important;
+            opacity: 1 !important;
+            z-index: 9999 !important;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset !important;
         }
         [data-testid="stSidebarCollapseButton"] button svg,
         [data-testid="collapsedControl"] button svg,
         [data-testid="stSidebarCollapsedControl"] button svg,
+        [data-testid="stSidebarCollapseButton"] button span,
+        [data-testid="collapsedControl"] button span,
+        [data-testid="stSidebarCollapsedControl"] button span,
+        [data-testid="stSidebarCollapseButton"] button i,
+        [data-testid="collapsedControl"] button i,
+        [data-testid="stSidebarCollapsedControl"] button i,
+        [data-testid="stSidebarCollapseButton"] button *,
+        [data-testid="collapsedControl"] button *,
+        [data-testid="stSidebarCollapsedControl"] button *,
         button[title="Collapse sidebar"] svg,
-        button[title="Expand sidebar"] svg {
+        button[title="Expand sidebar"] svg,
+        button[title="Collapse sidebar"] *,
+        button[title="Expand sidebar"] * {
             fill: #ffffff !important;
             stroke: #ffffff !important;
+            color: #ffffff !important;
+            opacity: 1 !important;
+            -webkit-text-fill-color: #ffffff !important;
+            text-shadow: 0 0 1px rgba(255, 255, 255, 0.25) !important;
         }
         [data-testid="stAlertContainer"] > div { border-radius: 12px; }
         [data-testid="stChatMessage"] {
