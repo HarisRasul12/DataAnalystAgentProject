@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from html import escape
 
 import numpy as np
 import pandas as pd
@@ -59,12 +60,45 @@ def apply_ocean_theme() -> None:
             font-family: 'Space Grotesk', sans-serif;
             letter-spacing: 0.2px;
         }
-        p, li, label, div, span { color: #ecf7ff; }
+        p, li, label { color: #ecf7ff; }
+        .stMarkdown, .stText, .stCaption { color: #ecf7ff; }
+        /* Keep form controls readable on their default light backgrounds */
+        [data-testid="stSidebar"] [data-baseweb="select"] * { color: #0f2233 !important; }
+        [data-testid="stSidebar"] div[data-baseweb="select"] > div {
+            background: #f7fbff !important;
+            border-color: rgba(9, 47, 72, 0.45) !important;
+            color: #0f2233 !important;
+        }
+        [data-testid="stSidebar"] div[data-baseweb="select"] span,
+        [data-testid="stSidebar"] div[data-baseweb="select"] div {
+            color: #0f2233 !important;
+            -webkit-text-fill-color: #0f2233 !important;
+        }
+        [data-testid="stSidebar"] textarea,
+        [data-testid="stSidebar"] input {
+            color: #0f2233 !important;
+            -webkit-text-fill-color: #0f2233 !important;
+            background: #f7fbff !important;
+        }
+        [data-testid="stSidebar"] textarea::placeholder,
+        [data-testid="stSidebar"] input::placeholder {
+            color: #5a6b7a !important;
+        }
+        [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBarMin"],
+        [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBarMax"],
+        [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBar"] {
+            color: #eaf6ff !important;
+        }
         [data-testid="stAlertContainer"] > div { border-radius: 12px; }
         [data-testid="stChatMessage"] {
-            background: rgba(7, 54, 84, 0.45);
-            border: 1px solid rgba(120, 204, 255, 0.22);
+            background: rgba(1, 3, 8, 0.78);
+            border: 1px solid rgba(117, 206, 255, 0.30);
             border-radius: 12px;
+        }
+        [data-testid="stChatMessage"] p,
+        [data-testid="stChatMessage"] div,
+        [data-testid="stChatMessage"] span {
+            color: #f2f8ff !important;
         }
         .ocean-hero {
             background: linear-gradient(120deg, rgba(7, 113, 175, 0.55), rgba(16, 189, 176, 0.35));
@@ -165,6 +199,23 @@ def apply_ocean_theme() -> None:
             padding: 0.85rem 0.95rem;
             margin-bottom: 0.8rem;
         }
+        .stButton > button, .stDownloadButton > button {
+            background: linear-gradient(180deg, #03050d 0%, #0a0f1f 100%) !important;
+            color: #f4fbff !important;
+            border: 1px solid rgba(145, 221, 255, 0.35) !important;
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+        }
+        .stButton > button:hover, .stDownloadButton > button:hover {
+            border-color: rgba(140, 228, 255, 0.65) !important;
+            box-shadow: 0 0 0 1px rgba(100, 200, 255, 0.22) inset;
+        }
+        [data-testid="stPlotlyChart"] > div {
+            background: #040710;
+            border: 1px solid rgba(118, 208, 255, 0.20);
+            border-radius: 12px;
+            padding: 0.2rem;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -249,11 +300,13 @@ def render_station_map(selected_station_key: str, result: RunResult | None = Non
 
     fig.update_layout(
         title="North America Coastal Station Network",
+        title_font={"color": "#eaf6ff", "size": 27},
         height=340,
         margin={"l": 0, "r": 0, "t": 38, "b": 0},
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="#040710",
+        plot_bgcolor="#040710",
         legend={"orientation": "h", "y": 1.06, "x": 0},
+        legend_font={"color": "#dff3ff"},
         font={"color": "#eaf6ff"},
     )
     fig.update_geos(
@@ -505,8 +558,8 @@ def render_ocean_lens(station: dict[str, object], result: RunResult) -> None:
             title="Port Risk Propagation Map",
             height=420,
             margin={"l": 0, "r": 0, "t": 44, "b": 0},
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="#040710",
+            plot_bgcolor="#040710",
             font={"color": "#eaf6ff"},
             legend={"orientation": "h", "y": 1.06},
         )
@@ -546,8 +599,8 @@ def render_ocean_lens(station: dict[str, object], result: RunResult) -> None:
             yaxis_title="",
             height=420,
             margin={"l": 0, "r": 10, "t": 44, "b": 10},
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="#040710",
+            plot_bgcolor="#040710",
             font={"color": "#eaf6ff"},
         )
         st.plotly_chart(bar, use_container_width=True)
@@ -562,6 +615,172 @@ def render_ocean_lens(station: dict[str, object], result: RunResult) -> None:
         port_frame[["port", "coast", "segment", "distance_km", "cargo_index", "risk_index", "risk_band"]],
         use_container_width=True,
         hide_index=True,
+    )
+
+
+def _trend_direction_text(result: RunResult, field: str) -> str:
+    metric_map = {m.field: m for m in (result.metrics.buoy_metrics + result.metrics.water_level_metrics)}
+    metric = metric_map.get(field)
+    if not metric or metric.slope_per_hour is None:
+        return "stable"
+    slope = float(metric.slope_per_hour)
+    if slope > 0.02:
+        return "rising"
+    if slope < -0.02:
+        return "falling"
+    return "stable"
+
+
+def build_tab_hypothesis_synthesis(
+    result: RunResult,
+    mc_report: WaveMonteCarloReport | None = None,
+) -> dict[str, dict[str, object]]:
+    advanced = result.metrics.advanced_analytics or {}
+    severity = result.metrics.advanced_analytics.get("severity", {})
+    severity_score = int(severity.get("score_0_100", 0))
+    severity_level = str(severity.get("level", "Unknown"))
+    exceed = _max_regression_exceedance_pct(result) or 0.0
+    anomaly_density = _anomaly_density_pct(result) or 0.0
+    wave_direction = _trend_direction_text(result, "wave_height_m")
+    port_frame = build_port_impact_frame(result.station, result)
+    top_port = str(port_frame.iloc[0]["port"]) if not port_frame.empty else "top regional ports"
+    top_port_risk = float(port_frame.iloc[0]["risk_index"]) if not port_frame.empty else 0.0
+    high_port_count = int((port_frame["risk_band"] == "High").sum()) if not port_frame.empty else 0
+    avg_port_risk = float(port_frame["risk_index"].mean()) if not port_frame.empty else 0.0
+    total_rows = int(sum(payload.row_count for payload in result.source_payloads.values()))
+    source_ok = int(sum(1 for status in result.health.values() if status == "ok"))
+    freshness = _source_freshness_minutes(result)
+
+    regressions = advanced.get("regression_signals", [])
+    top_regression = None
+    if regressions:
+        top_regression = max(
+            regressions,
+            key=lambda row: float(row.get("exceedance_probability", 0.0) or 0.0),
+        )
+    reg_label = str(top_regression.get("label", "N/A")) if isinstance(top_regression, dict) else "N/A"
+    reg_prob = (float(top_regression.get("exceedance_probability", 0.0)) * 100.0) if isinstance(top_regression, dict) else 0.0
+    reg_slope = float(top_regression.get("slope_per_hour", 0.0) or 0.0) if isinstance(top_regression, dict) else 0.0
+
+    patterns = advanced.get("irregular_patterns", [])
+    top_pattern = patterns[0] if patterns else None
+    pattern_text = (
+        f"{top_pattern.get('label', top_pattern.get('field', 'signal'))} at {top_pattern.get('timestamp_utc', 'n/a')}"
+        if isinstance(top_pattern, dict)
+        else "No strong irregular spike/drop detected in current window."
+    )
+
+    executive_payload: dict[str, object] = {
+        "summary": (
+            f"Anchor interpretation: this run indicates a {severity_level.lower()} coastal-stress regime "
+            f"({severity_score}/100) aligned with a {wave_direction} wave regime and modeled exceedance risk "
+            f"up to {exceed:.1f}%."
+        ),
+        "points": [
+            f"Composite severity score = {severity_score}/100 ({severity_level}).",
+            f"Highest regression exceedance signal = {reg_label} at {reg_prob:.1f}%.",
+            f"Anomaly density = {anomaly_density:.1f}% across buoy + water-level observations.",
+            f"Primary irregular pattern evidence: {pattern_text}",
+        ],
+    }
+    geo_payload: dict[str, object] = {
+        "summary": (
+            "Geo Lens shows how the station-level hypothesis propagates into likely port-operational stress zones."
+        ),
+        "points": [
+            f"Top exposed port is {top_port} with risk index {top_port_risk:.1f}/100.",
+            f"Average port risk index across tracked ports = {avg_port_risk:.1f}.",
+            f"Ports in High band = {high_port_count}, indicating concentrated operational sensitivity.",
+            f"This supports the executive hypothesis by translating ocean-state stress into logistics-impact geography.",
+        ],
+    }
+    quant_payload: dict[str, object] = {
+        "summary": (
+            "Quant Lab validates the hypothesis with explainable EDA evidence from regressions, anomalies, and scenarios."
+        ),
+        "points": [
+            f"Strongest modeled risk driver = {reg_label} with exceedance probability {reg_prob:.1f}%.",
+            f"Associated trend slope = {reg_slope:+.4f} per hour, quantifying direction and speed of change.",
+            f"Anomaly density = {anomaly_density:.1f}%, showing how unusual current behavior is versus baseline.",
+            f"Irregular-pattern evidence used for hypothesis grounding: {pattern_text}",
+        ],
+    }
+
+    if mc_report is None:
+        mc_payload: dict[str, object] = {
+            "summary": (
+                "Monte Carlo handoff has not run yet, so the final hypothesis currently reflects observed/regression evidence only."
+            ),
+            "points": [
+                "Run Monte Carlo to test path uncertainty and tail outcomes over your selected horizon.",
+                "This adds forward-looking stress scenarios beyond static trend extrapolation.",
+            ],
+        }
+    elif mc_report.mc_hypothesis_ready:
+        mc_payload = {
+            "summary": (
+                "Monte Carlo evidence refines the executive hypothesis by quantifying future path uncertainty and tail exposure."
+            ),
+            "points": [
+                f"P(end > 2m) = {mc_report.probability_exceed_2m*100:.1f}% over the selected horizon.",
+                f"P(any path > 3m) = {mc_report.probability_reach_3m_anytime*100:.1f}%.",
+                f"Final-state median = {mc_report.final_p50_m:.2f} m; tail-risk CVaR95 = {mc_report.cvar95_final_m:.2f} m.",
+                "These probabilities calibrate how aggressively to operationalize the executive hypothesis.",
+            ],
+        }
+    else:
+        mc_payload = {
+            "summary": (
+                "Monte Carlo stats are available, but ADK interpretation is blocked; this limits narrative refinement of the final hypothesis."
+            ),
+            "points": [
+                f"Simulation still produced quantitative signals (P(end>2m)={mc_report.probability_exceed_2m*100:.1f}%).",
+                f"Narrative gate status = {mc_report.mc_adk_status.replace('_', ' ')}.",
+                "Executive hypothesis remains primarily anchored to observed EDA until MC ADK interpretation succeeds.",
+            ],
+        }
+    data_payload: dict[str, object] = {
+        "summary": (
+            "Data Room ties each hypothesis claim to reproducible runtime evidence and source-health context."
+        ),
+        "points": [
+            f"Total collected rows = {total_rows} from {source_ok}/3 healthy NOAA sources.",
+            f"Source freshness (oldest feed age) = {freshness:.1f} min." if freshness is not None else "Source freshness unavailable in this run.",
+            "Exportable CSV tables provide an auditable evidence trail for every tab-level claim.",
+            "This is the proof layer backing the executive hypothesis with inspectable data lineage.",
+        ],
+    }
+    return {
+        "Executive Brief": executive_payload,
+        "Geo Lens": geo_payload,
+        "Quant Lab": quant_payload,
+        "Monte Carlo Lab": mc_payload,
+        "Data Room": data_payload,
+    }
+
+
+def render_tab_hypothesis_synthesis(tab_name: str, synthesis_payload: dict[str, object], executive_hypothesis: str) -> None:
+    summary = escape(str(synthesis_payload.get("summary", "")))
+    raw_points = synthesis_payload.get("points", [])
+    points = []
+    if isinstance(raw_points, list):
+        for item in raw_points[:4]:
+            points.append(escape(str(item)))
+    hypothesis_anchor = executive_hypothesis.strip()
+    if len(hypothesis_anchor) > 220:
+        hypothesis_anchor = hypothesis_anchor[:217].rstrip() + "..."
+    anchor_html = escape(hypothesis_anchor)
+    points_html = "".join(f"<li>{item}</li>" for item in points)
+    st.markdown(
+        (
+            "<div class='insight-strip'>"
+            f"<b>{tab_name} Hypothesis Contribution</b><br>"
+            f"<span style='opacity:0.92;'><b>Executive hypothesis anchor:</b> \"{anchor_html}\"</span><br>"
+            f"<span style='opacity:0.96;'>{summary}</span>"
+            f"<ul style='margin-top:0.35rem; margin-bottom:0;'>{points_html}</ul>"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
     )
 
 
@@ -641,8 +860,8 @@ def render_advanced_panels(result: RunResult) -> None:
                 yaxis_title="Exceedance Probability (%)",
                 height=360,
                 margin={"l": 20, "r": 20, "t": 50, "b": 20},
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="#040710",
+                plot_bgcolor="#040710",
                 font={"color": "#eaf6ff"},
             )
             st.plotly_chart(slope_fig, use_container_width=True)
@@ -671,8 +890,8 @@ def render_advanced_panels(result: RunResult) -> None:
                 barmode="group",
                 height=360,
                 margin={"l": 20, "r": 20, "t": 50, "b": 20},
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="#040710",
+                plot_bgcolor="#040710",
                 font={"color": "#eaf6ff"},
             )
             st.plotly_chart(compare_fig, use_container_width=True)
@@ -725,8 +944,8 @@ def render_advanced_panels(result: RunResult) -> None:
                 yaxis_title="Severity Score (0-100)",
                 height=360,
                 margin={"l": 20, "r": 20, "t": 50, "b": 20},
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="#040710",
+                plot_bgcolor="#040710",
                 font={"color": "#eaf6ff"},
             )
             st.plotly_chart(sim_scatter, use_container_width=True)
@@ -758,8 +977,8 @@ def render_advanced_panels(result: RunResult) -> None:
                 title="Projected Ocean State by Scenario",
                 height=360,
                 margin={"l": 20, "r": 20, "t": 50, "b": 20},
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="#040710",
+                plot_bgcolor="#040710",
                 font={"color": "#eaf6ff"},
                 yaxis={"title": "Wave Height (m)"},
                 yaxis2={"title": "Water Level (m)", "overlaying": "y", "side": "right"},
@@ -966,9 +1185,12 @@ def render_wave_monte_carlo_panel(report: WaveMonteCarloReport) -> None:
         title="Wave Height Monte Carlo Paths",
         xaxis_title="Forecast Hour",
         yaxis_title="Wave Height (m)",
-        template="plotly_white",
+        template="plotly_dark",
         margin={"l": 20, "r": 20, "t": 60, "b": 20},
         hovermode="x unified",
+        paper_bgcolor="#040710",
+        plot_bgcolor="#040710",
+        font={"color": "#eaf6ff"},
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -993,8 +1215,11 @@ def render_wave_monte_carlo_panel(report: WaveMonteCarloReport) -> None:
             title="Final-State Distribution",
             xaxis_title="Final Wave Height (m)",
             yaxis_title="Path Count",
-            template="plotly_white",
+            template="plotly_dark",
             margin={"l": 20, "r": 20, "t": 50, "b": 20},
+            paper_bgcolor="#040710",
+            plot_bgcolor="#040710",
+            font={"color": "#eaf6ff"},
         )
         st.plotly_chart(hist_fig, use_container_width=True)
 
@@ -1018,8 +1243,11 @@ def render_wave_monte_carlo_panel(report: WaveMonteCarloReport) -> None:
             title="Threshold Exceedance Curve",
             xaxis_title="Wave Threshold (m)",
             yaxis_title="Probability (%)",
-            template="plotly_white",
+            template="plotly_dark",
             margin={"l": 20, "r": 20, "t": 50, "b": 20},
+            paper_bgcolor="#040710",
+            plot_bgcolor="#040710",
+            font={"color": "#eaf6ff"},
         )
         st.plotly_chart(curve_fig, use_container_width=True)
 
@@ -1155,8 +1383,10 @@ def main() -> None:
             "Data Room",
         ]
     )
+    tab_synthesis = build_tab_hypothesis_synthesis(result, mc_report=mc_report)
 
     with tabs[0]:
+        render_tab_hypothesis_synthesis("Executive Brief", tab_synthesis["Executive Brief"], result.insight.thesis)
         col_left, col_right = st.columns([1.55, 1], gap="large")
         with col_left:
             render_agent_workflow(result, mc_report=mc_report)
@@ -1196,15 +1426,18 @@ def main() -> None:
             )
 
     with tabs[1]:
+        render_tab_hypothesis_synthesis("Geo Lens", tab_synthesis["Geo Lens"], result.insight.thesis)
         render_ocean_lens(result.station, result)
 
     with tabs[2]:
+        render_tab_hypothesis_synthesis("Quant Lab", tab_synthesis["Quant Lab"], result.insight.thesis)
         render_advanced_panels(result)
         st.subheader("Visual Analytics")
         for name, figure in result.figures.items():
             st.plotly_chart(figure, use_container_width=True)
 
     with tabs[3]:
+        render_tab_hypothesis_synthesis("Monte Carlo Lab", tab_synthesis["Monte Carlo Lab"], result.insight.thesis)
         st.subheader("Monte Carlo Follow-up (Agent Handoff)")
         st.caption(
             "After preliminary analysis, choose horizon and path count, then hand off to the Monte Carlo specialist agent."
@@ -1242,6 +1475,7 @@ def main() -> None:
             render_wave_monte_carlo_panel(mc_report)
 
     with tabs[4]:
+        render_tab_hypothesis_synthesis("Data Room", tab_synthesis["Data Room"], result.insight.thesis)
         st.subheader("Data Exports")
         data_cols = st.columns(3)
         with data_cols[0]:

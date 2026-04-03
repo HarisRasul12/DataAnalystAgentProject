@@ -8,6 +8,11 @@ It is built to satisfy **Project 2: Data Analyst Agent** requirements end-to-end
 - Perform EDA with tool calls and computation
 - Produce a data-grounded hypothesis with evidence
 
+Live deployment (Cloud Run): **https://oceanwatch-q7smatrnpa-uc.a.run.app**
+
+> **Runtime disclaimer:** After you click **Run Multi-Agent Analysis**, the pipeline can take **~3-5 minutes** to return results depending on NOAA response time and ADK/Vertex latency.  
+> The **Monte Carlo handoff** can also take **~3-5 minutes** after activation before returning simulation outputs and interpretation.
+
 ---
 
 ## 0) Product Context
@@ -449,9 +454,28 @@ gcloud artifacts repositories create oceanwatch-repo \
 gcloud builds submit \
   --config cloudbuild.yaml \
   --substitutions=_SERVICE=oceanwatch,_REGION=us-central1,_REPO=oceanwatch-repo,_IMAGE_TAG=latest
+
+gcloud run services describe oceanwatch \
+  --region us-central1 \
+  --format='value(status.url)'
 ```
 
-After deploy, Cloud Build prints the public URL.
+Current deployed URL:
+- `https://oceanwatch-q7smatrnpa-uc.a.run.app`
+
+If Cloud Build succeeds but deploy fails on env-var parsing, run direct deploy:
+
+```bash
+gcloud run deploy oceanwatch \
+  --image=us-central1-docker.pkg.dev/ieor-4576-agents-haris/oceanwatch-repo/oceanwatch:latest \
+  --region=us-central1 \
+  --platform=managed \
+  --allow-unauthenticated \
+  --timeout=900 \
+  --cpu=2 \
+  --memory=2Gi \
+  --set-env-vars="^:^VERTEX_MODEL=gemini-2.0-flash-lite:OCEANWATCH_VERTEX_MODEL_CANDIDATES=gemini-2.0-flash,gemini-2.5-flash-lite:OCEANWATCH_REQUIRE_ADK_SUCCESS=true:OCEANWATCH_ALLOW_TRANSIENT_FALLBACK_WHEN_STRICT=true:OCEANWATCH_APP_NAME=oceanwatch:OCEANWATCH_DEFAULT_HOURS=168:OCEANWATCH_TIMEOUT_SECONDS=20:OCEANWATCH_RETRY_ATTEMPTS=3:OCEANWATCH_ADK_TIMEOUT_SECONDS=45:GOOGLE_CLOUD_LOCATION=us-central1:GOOGLE_GENAI_USE_VERTEXAI=true"
+```
 
 ---
 

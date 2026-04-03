@@ -99,10 +99,13 @@ def _buoy_conditions_figure(frame: pd.DataFrame) -> go.Figure:
 
     fig.update_layout(
         title="Buoy Dynamics: Wave, Wind, Temperature",
-        template="plotly_white",
+        template="plotly_dark",
         legend={"orientation": "h", "y": 1.12},
         margin={"l": 20, "r": 20, "t": 60, "b": 20},
         hovermode="x unified",
+        paper_bgcolor="#040710",
+        plot_bgcolor="#040710",
+        font={"color": "#eaf6ff"},
     )
     fig.update_yaxes(title_text="Wave Height (m)", secondary_y=False)
     fig.update_yaxes(title_text="Wind Speed / Water Temp", secondary_y=True)
@@ -149,11 +152,14 @@ def _water_level_figure(water_level: pd.DataFrame, predictions: pd.DataFrame) ->
 
     fig.update_layout(
         title="Water Level and Tide Predictions",
-        template="plotly_white",
+        template="plotly_dark",
         legend={"orientation": "h", "y": 1.12},
         margin={"l": 20, "r": 20, "t": 60, "b": 20},
         yaxis_title="Water level (m) / Predicted tide (ft)",
         hovermode="x unified",
+        paper_bgcolor="#040710",
+        plot_bgcolor="#040710",
+        font={"color": "#eaf6ff"},
     )
     return fig
 
@@ -175,10 +181,13 @@ def _distribution_figure(advanced_analytics: dict[str, Any]) -> go.Figure:
     fig.add_trace(go.Bar(x=labels, y=p75, name="P75", marker_color="#2171b5"))
     fig.update_layout(
         title="Statistical Distribution Bands (P25/P50/P75)",
-        template="plotly_white",
+        template="plotly_dark",
         barmode="group",
         margin={"l": 20, "r": 20, "t": 60, "b": 30},
         hovermode="x unified",
+        paper_bgcolor="#040710",
+        plot_bgcolor="#040710",
+        font={"color": "#eaf6ff"},
     )
     return fig
 
@@ -219,10 +228,13 @@ def _scenario_figure(advanced_analytics: dict[str, Any]) -> go.Figure:
     )
     fig.update_layout(
         title="Scenario Simulation: Severity vs Likelihood",
-        template="plotly_white",
+        template="plotly_dark",
         margin={"l": 20, "r": 20, "t": 60, "b": 30},
         yaxis={"title": "Severity (0-100)"},
         yaxis2={"title": "Likelihood (%)", "overlaying": "y", "side": "right"},
+        paper_bgcolor="#040710",
+        plot_bgcolor="#040710",
+        font={"color": "#eaf6ff"},
     )
     return fig
 
