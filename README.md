@@ -1,3 +1,6 @@
+
+<img width="1536" height="1024" alt="Logo design for OceanWatch analytics" src="https://github.com/user-attachments/assets/fbe5ee3f-eb05-4c17-87c6-41cc7ef48a50" />
+
 # OceanWatch: BlueTide Intelligence
 By: **Haris Rasul**
 
