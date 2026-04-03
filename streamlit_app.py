@@ -104,53 +104,55 @@ def apply_ocean_theme() -> None:
         [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBar"] {
             color: #ffffff !important;
         }
-        /* Lock sidebar open: remove collapse/expand controls entirely */
+        /* Remove collapse control when sidebar is open */
         [data-testid="stSidebarCollapseButton"],
-        [data-testid="collapsedControl"],
-        [data-testid="stSidebarCollapsedControl"],
         button[title="Collapse sidebar"],
-        button[title="Expand sidebar"] {
+        button[aria-label="Collapse sidebar"] {
             display: none !important;
             visibility: hidden !important;
             pointer-events: none !important;
         }
-        /* Sidebar collapse/expand (double-arrow) visibility fallback */
-        [data-testid="stSidebarCollapseButton"] button,
+        /* If sidebar is hidden (mobile), make the open control obvious and red */
         [data-testid="collapsedControl"] button,
         [data-testid="stSidebarCollapsedControl"] button,
         div[data-testid="collapsedControl"] > button,
         div[data-testid="stSidebarCollapsedControl"] > button,
-        button[title="Collapse sidebar"],
-        button[title="Expand sidebar"] {
+        button[title="Expand sidebar"],
+        button[aria-label="Expand sidebar"],
+        button[title="Open sidebar"],
+        button[aria-label="Open sidebar"] {
             color: #ffffff !important;
-            background: rgba(3, 8, 20, 0.80) !important;
-            border: 1px solid rgba(166, 230, 255, 0.45) !important;
-            border-radius: 10px !important;
+            background: linear-gradient(180deg, #ff4654 0%, #cc1238 100%) !important;
+            border: 1px solid #ff9aa8 !important;
+            border-radius: 12px !important;
             opacity: 1 !important;
             z-index: 9999 !important;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset !important;
+            box-shadow: 0 8px 22px rgba(204, 18, 56, 0.52) !important;
+            min-width: 42px !important;
+            min-height: 42px !important;
         }
         [data-testid="collapsedControl"],
         [data-testid="stSidebarCollapsedControl"] {
+            display: block !important;
             opacity: 1 !important;
             z-index: 9999 !important;
         }
-        [data-testid="stSidebarCollapseButton"] button svg,
         [data-testid="collapsedControl"] button svg,
         [data-testid="stSidebarCollapsedControl"] button svg,
-        [data-testid="stSidebarCollapseButton"] button span,
         [data-testid="collapsedControl"] button span,
         [data-testid="stSidebarCollapsedControl"] button span,
-        [data-testid="stSidebarCollapseButton"] button i,
         [data-testid="collapsedControl"] button i,
         [data-testid="stSidebarCollapsedControl"] button i,
-        [data-testid="stSidebarCollapseButton"] button *,
         [data-testid="collapsedControl"] button *,
         [data-testid="stSidebarCollapsedControl"] button *,
-        button[title="Collapse sidebar"] svg,
         button[title="Expand sidebar"] svg,
-        button[title="Collapse sidebar"] *,
+        button[aria-label="Expand sidebar"] svg,
+        button[title="Open sidebar"] svg,
+        button[aria-label="Open sidebar"] svg,
         button[title="Expand sidebar"] *,
+        button[aria-label="Expand sidebar"] *,
+        button[title="Open sidebar"] *,
+        button[aria-label="Open sidebar"] *,
         [data-testid="collapsedControl"] *,
         [data-testid="stSidebarCollapsedControl"] * {
             fill: #ffffff !important;
@@ -166,6 +168,15 @@ def apply_ocean_theme() -> None:
         [data-testid="stSidebarCollapsedControl"] svg g {
             fill: #ffffff !important;
             stroke: #ffffff !important;
+        }
+        @media (max-width: 1024px) {
+            [data-testid="collapsedControl"],
+            [data-testid="stSidebarCollapsedControl"] {
+                position: fixed !important;
+                top: 0.55rem !important;
+                left: 0.45rem !important;
+                z-index: 10001 !important;
+            }
         }
         [data-testid="stAlertContainer"] > div { border-radius: 12px; }
         [data-testid="stChatMessage"] {
