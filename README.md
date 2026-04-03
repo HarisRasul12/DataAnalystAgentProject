@@ -12,6 +12,7 @@ It is built to satisfy **Project 2: Data Analyst Agent** requirements end-to-end
 - Produce a data-grounded hypothesis with evidence
 
 Live deployment (Cloud Run): **https://oceanwatch-q7smatrnpa-uc.a.run.app**
+Last verified live revision: **oceanwatch-00013-ndb** (April 3, 2026)
 
 > **Runtime disclaimer:** After you click **Run Multi-Agent Analysis**, the pipeline can take **~3-5 minutes** to return results depending on NOAA response time and ADK/Vertex latency.  
 > The **Monte Carlo handoff** can also take **~3-5 minutes** after activation before returning simulation outputs and interpretation.
@@ -465,6 +466,7 @@ gcloud run services describe oceanwatch \
 
 Current deployed URL:
 - `https://oceanwatch-q7smatrnpa-uc.a.run.app`
+- Latest verified ready revision: `oceanwatch-00013-ndb` (April 3, 2026)
 
 If Cloud Build succeeds but deploy fails on env-var parsing, run direct deploy:
 

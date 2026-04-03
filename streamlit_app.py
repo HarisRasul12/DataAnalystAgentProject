@@ -104,7 +104,17 @@ def apply_ocean_theme() -> None:
         [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBar"] {
             color: #ffffff !important;
         }
-        /* Sidebar collapse/expand (double-arrow) visibility */
+        /* Lock sidebar open: remove collapse/expand controls entirely */
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapsedControl"],
+        button[title="Collapse sidebar"],
+        button[title="Expand sidebar"] {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        /* Sidebar collapse/expand (double-arrow) visibility fallback */
         [data-testid="stSidebarCollapseButton"] button,
         [data-testid="collapsedControl"] button,
         [data-testid="stSidebarCollapsedControl"] button,
@@ -119,6 +129,11 @@ def apply_ocean_theme() -> None:
             opacity: 1 !important;
             z-index: 9999 !important;
             box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset !important;
+        }
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapsedControl"] {
+            opacity: 1 !important;
+            z-index: 9999 !important;
         }
         [data-testid="stSidebarCollapseButton"] button svg,
         [data-testid="collapsedControl"] button svg,
@@ -135,13 +150,22 @@ def apply_ocean_theme() -> None:
         button[title="Collapse sidebar"] svg,
         button[title="Expand sidebar"] svg,
         button[title="Collapse sidebar"] *,
-        button[title="Expand sidebar"] * {
+        button[title="Expand sidebar"] *,
+        [data-testid="collapsedControl"] *,
+        [data-testid="stSidebarCollapsedControl"] * {
             fill: #ffffff !important;
             stroke: #ffffff !important;
             color: #ffffff !important;
             opacity: 1 !important;
             -webkit-text-fill-color: #ffffff !important;
             text-shadow: 0 0 1px rgba(255, 255, 255, 0.25) !important;
+        }
+        [data-testid="collapsedControl"] svg path,
+        [data-testid="stSidebarCollapsedControl"] svg path,
+        [data-testid="collapsedControl"] svg g,
+        [data-testid="stSidebarCollapsedControl"] svg g {
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
         }
         [data-testid="stAlertContainer"] > div { border-radius: 12px; }
         [data-testid="stChatMessage"] {
@@ -1334,7 +1358,12 @@ def dataframe_download_button(name: str, frame: pd.DataFrame) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="OceanWatch", page_icon="🌊", layout="wide")
+    st.set_page_config(
+        page_title="OceanWatch",
+        page_icon="🌊",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
     apply_ocean_theme()
     service = get_service()
 
