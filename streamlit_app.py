@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 from oceanwatch.config import load_settings
 from oceanwatch.schemas import AnalysisRequest, RunResult, WaveMonteCarloReport
@@ -308,6 +309,79 @@ def apply_ocean_theme() -> None:
         </style>
         """,
         unsafe_allow_html=True,
+    )
+
+
+def inject_mobile_sidebar_guard() -> None:
+    components.html(
+        """
+        <script>
+        const applySidebarToggleStyles = () => {
+          const doc = window.parent.document;
+          if (!doc) return;
+
+          const closeSelectors = [
+            '[data-testid="stSidebarCollapseButton"]',
+            'button[title="Collapse sidebar"]',
+            'button[aria-label="Collapse sidebar"]'
+          ];
+          closeSelectors.forEach((selector) => {
+            doc.querySelectorAll(selector).forEach((node) => {
+              node.style.display = 'none';
+              node.style.visibility = 'hidden';
+              node.style.pointerEvents = 'none';
+            });
+          });
+
+          const openSelectors = [
+            '[data-testid="collapsedControl"]',
+            '[data-testid="stSidebarCollapsedControl"]',
+            'button[title="Expand sidebar"]',
+            'button[aria-label="Expand sidebar"]',
+            'button[title="Open sidebar"]',
+            'button[aria-label="Open sidebar"]'
+          ];
+
+          openSelectors.forEach((selector) => {
+            doc.querySelectorAll(selector).forEach((node) => {
+              const button = node.tagName === 'BUTTON' ? node : node.querySelector('button');
+              const target = button || node;
+              target.style.display = 'flex';
+              target.style.alignItems = 'center';
+              target.style.justifyContent = 'center';
+              target.style.position = 'fixed';
+              target.style.top = '10px';
+              target.style.left = '10px';
+              target.style.width = '46px';
+              target.style.height = '46px';
+              target.style.minWidth = '46px';
+              target.style.minHeight = '46px';
+              target.style.borderRadius = '12px';
+              target.style.background = 'linear-gradient(180deg, #ff4654 0%, #cc1238 100%)';
+              target.style.border = '1px solid #ffb0bb';
+              target.style.boxShadow = '0 10px 24px rgba(204,18,56,0.55)';
+              target.style.zIndex = '10001';
+              target.style.opacity = '1';
+              target.style.visibility = 'visible';
+              target.style.pointerEvents = 'auto';
+              target.style.color = '#ffffff';
+
+              target.querySelectorAll('*').forEach((child) => {
+                child.style.color = '#ffffff';
+                child.style.fill = '#ffffff';
+                child.style.stroke = '#ffffff';
+                child.style.opacity = '1';
+                child.style.webkitTextFillColor = '#ffffff';
+              });
+            });
+          });
+        };
+
+        applySidebarToggleStyles();
+        setInterval(applySidebarToggleStyles, 1000);
+        </script>
+        """,
+        height=0,
     )
 
 
@@ -1376,6 +1450,7 @@ def main() -> None:
         initial_sidebar_state="expanded",
     )
     apply_ocean_theme()
+    inject_mobile_sidebar_guard()
     service = get_service()
 
     st.markdown(
