@@ -55,6 +55,21 @@ def apply_ocean_theme() -> None:
             background: linear-gradient(180deg, #032339 0%, #0d466c 100%);
             border-right: 1px solid rgba(120, 204, 255, 0.20);
         }
+        /* Force bright white sidebar text for headers/labels/help text */
+        [data-testid="stSidebar"] h1,
+        [data-testid="stSidebar"] h2,
+        [data-testid="stSidebar"] h3,
+        [data-testid="stSidebar"] h4,
+        [data-testid="stSidebar"] h5,
+        [data-testid="stSidebar"] h6,
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"],
+        [data-testid="stSidebar"] [data-testid="stCaptionContainer"],
+        [data-testid="stSidebar"] .st-emotion-cache-10trblm {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+        }
         h1, h2, h3, h4, h5, h6 {
             color: #ecf7ff;
             font-family: 'Space Grotesk', sans-serif;
@@ -87,7 +102,26 @@ def apply_ocean_theme() -> None:
         [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBarMin"],
         [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBarMax"],
         [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBar"] {
-            color: #eaf6ff !important;
+            color: #ffffff !important;
+        }
+        /* Sidebar collapse/expand (double-arrow) visibility */
+        [data-testid="stSidebarCollapseButton"] button,
+        [data-testid="collapsedControl"] button,
+        [data-testid="stSidebarCollapsedControl"] button,
+        button[title="Collapse sidebar"],
+        button[title="Expand sidebar"] {
+            color: #ffffff !important;
+            background: rgba(3, 8, 20, 0.80) !important;
+            border: 1px solid rgba(166, 230, 255, 0.45) !important;
+            border-radius: 10px !important;
+        }
+        [data-testid="stSidebarCollapseButton"] button svg,
+        [data-testid="collapsedControl"] button svg,
+        [data-testid="stSidebarCollapsedControl"] button svg,
+        button[title="Collapse sidebar"] svg,
+        button[title="Expand sidebar"] svg {
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
         }
         [data-testid="stAlertContainer"] > div { border-radius: 12px; }
         [data-testid="stChatMessage"] {
